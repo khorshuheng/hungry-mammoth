@@ -3,10 +3,11 @@ use tracing::{debug, info};
 
 mod config;
 mod dto;
+mod error;
+mod extractor;
 mod handler;
 mod metrics;
 mod middleware;
-mod response;
 mod routes;
 
 #[tokio::main]

@@ -1,12 +1,10 @@
-use axum::Json;
-
-use crate::{
-  dto::health::{HealthCheckResponse, HealthCheckStatus},
-  response::api_response::ApiSuccessResponse,
+use crate::dto::{
+  health::{HealthCheckResponse, HealthCheckStatus},
+  wrapper::{ApiResult, ApiSuccess},
 };
 
-pub async fn check() -> Json<ApiSuccessResponse<HealthCheckResponse>> {
-  Json(ApiSuccessResponse::send(HealthCheckResponse {
+pub async fn health_check() -> ApiResult<HealthCheckResponse> {
+  Ok(ApiSuccess::send(HealthCheckResponse {
     status: HealthCheckStatus::Pass,
   }))
 }
