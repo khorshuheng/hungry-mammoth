@@ -1,0 +1,5 @@
+# Common configurations which a user might want to override
+# For more information on what each configuration key and value does, check `default.toml`.
+[server]
+app_port = 8080
+metrics_port = 8080

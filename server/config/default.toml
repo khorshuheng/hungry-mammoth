@@ -1,0 +1,23 @@
+[server]
+# Server host
+host = "0.0.0.0"
+# The port the application server listens on
+app_port = 8000
+# The port the metrics server listens on
+metrics_port = 8080
+
+[metrics]
+# Http requests latency buckets in seconds
+http_requests_latency_buckets = [
+  0.005,
+  0.01,
+  0.025,
+  0.05,
+  0.1,
+  0.25,
+  0.5,
+  1.0,
+  2.5,
+  5.0,
+  10.0,
+]

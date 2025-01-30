@@ -1,6 +1,7 @@
 use tokio::signal;
-use tracing::info;
+use tracing::{debug, info};
 
+mod config;
 mod dto;
 mod handler;
 mod metrics;
@@ -11,27 +12,42 @@ mod routes;
 #[tokio::main]
 async fn main() {
   tracing_subscriber::fmt::init();
+  let app_config = config::AppConfig::new().expect("error parsing configuration");
+  debug!("App config: {:?}", app_config);
+
   let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
   tokio::join!(
-    start_app_server(shutdown_tx),
-    start_metrics_server(shutdown_rx)
+    start_app_server(shutdown_tx, &app_config),
+    start_metrics_server(shutdown_rx, &app_config)
   );
 }
 
-async fn start_app_server(shutdown_tx: tokio::sync::oneshot::Sender<()>) {
+async fn start_app_server(
+  shutdown_tx: tokio::sync::oneshot::Sender<()>,
+  app_config: &config::AppConfig,
+) {
   let app_routes = routes::root::routes();
-  let app_server_listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
-  info!("App server started on port 8000");
+  let app_listener_address = app_config.server.app_listener_address();
+  let app_server_listener = tokio::net::TcpListener::bind(&app_listener_address)
+    .await
+    .expect("error binding to app server listener");
+  info!("App server listening on {}", app_listener_address);
   axum::serve(app_server_listener, app_routes)
     .with_graceful_shutdown(app_server_shutdown_handler(shutdown_tx))
     .await
     .unwrap();
 }
 
-async fn start_metrics_server(shutdown_rx: tokio::sync::oneshot::Receiver<()>) {
-  let metric_routes = routes::metrics::routes();
-  let metrics_server_listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
-  info!("Metrics server started on port 8080");
+async fn start_metrics_server(
+  shutdown_rx: tokio::sync::oneshot::Receiver<()>,
+  app_config: &config::AppConfig,
+) {
+  let metric_routes = routes::metrics::routes(&app_config.metrics);
+  let metrics_listener_address = app_config.server.metrics_listener_address();
+  let metrics_server_listener = tokio::net::TcpListener::bind(&metrics_listener_address)
+    .await
+    .expect("error binding to metrics server listener");
+  info!("Metrics server listening on {}", metrics_listener_address);
   axum::serve(metrics_server_listener, metric_routes)
     .with_graceful_shutdown(metric_server_shutdown_handler(shutdown_rx))
     .await
