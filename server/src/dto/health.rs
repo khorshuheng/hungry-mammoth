@@ -9,5 +9,5 @@ pub enum HealthCheckStatus {
 
 #[derive(Serialize)]
 pub struct HealthCheckResponse {
-  pub status: HealthCheckStatus,
+  pub result: HealthCheckStatus,
 }

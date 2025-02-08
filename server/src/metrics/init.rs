@@ -1,6 +1,5 @@
-use super::{request, rss};
+use super::request;
 
 pub fn init_metrics() {
   request::init_metrics();
-  rss::init_metrics();
 }

@@ -2,7 +2,6 @@ use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-#[allow(unused)]
 pub struct ServerConfig {
   pub host: String,
   pub app_port: u16,
@@ -20,9 +19,19 @@ impl ServerConfig {
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(unused)]
 pub struct MetricsConfig {
   pub http_requests_latency_buckets: Vec<f64>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DatabaseConfig {
+  pub host: String,
+  pub port: u16,
+  pub user: String,
+  pub password: String,
+  pub database: String,
+  pub max_connections: u32,
+  pub acquire_timeout: u64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -30,6 +39,7 @@ pub struct MetricsConfig {
 pub struct AppConfig {
   pub server: ServerConfig,
   pub metrics: MetricsConfig,
+  pub database: DatabaseConfig,
 }
 
 impl AppConfig {

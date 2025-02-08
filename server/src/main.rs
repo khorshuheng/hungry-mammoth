@@ -1,33 +1,30 @@
+extern crate dotenv;
+
+use hungry_mammoth::{config::AppConfig, routes, state::AppState};
 use tokio::signal;
 use tracing::{debug, info};
 
-mod config;
-mod dto;
-mod error;
-mod extractor;
-mod handler;
-mod metrics;
-mod middleware;
-mod routes;
-
 #[tokio::main]
 async fn main() {
+  dotenv::dotenv().ok();
   tracing_subscriber::fmt::init();
-  let app_config = config::AppConfig::new().expect("error parsing configuration");
+  let app_config = AppConfig::new().expect("error parsing configuration");
   debug!("App config: {:?}", app_config);
+  let app_state = AppState::new(&app_config).await;
 
   let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
   tokio::join!(
-    start_app_server(shutdown_tx, &app_config),
+    start_app_server(shutdown_tx, &app_config, app_state),
     start_metrics_server(shutdown_rx, &app_config)
   );
 }
 
 async fn start_app_server(
   shutdown_tx: tokio::sync::oneshot::Sender<()>,
-  app_config: &config::AppConfig,
+  app_config: &AppConfig,
+  app_state: AppState,
 ) {
-  let app_routes = routes::root::routes();
+  let app_routes = routes::root::routes(app_state);
   let app_listener_address = app_config.server.app_listener_address();
   let app_server_listener = tokio::net::TcpListener::bind(&app_listener_address)
     .await
@@ -41,7 +38,7 @@ async fn start_app_server(
 
 async fn start_metrics_server(
   shutdown_rx: tokio::sync::oneshot::Receiver<()>,
-  app_config: &config::AppConfig,
+  app_config: &AppConfig,
 ) {
   let metric_routes = routes::metrics::routes(&app_config.metrics);
   let metrics_listener_address = app_config.server.metrics_listener_address();

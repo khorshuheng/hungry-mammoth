@@ -1,13 +1,15 @@
 use axum::{routing::IntoMakeService, Router};
 use tower_http::{services::ServeDir, trace::TraceLayer};
 
-use crate::middleware::request_tracker::track_requests;
+use crate::{middleware::request_tracker::track_requests, state::AppState};
 
 use super::{health, user};
 
-pub fn routes() -> IntoMakeService<Router> {
+pub fn routes(app_state: AppState) -> IntoMakeService<Router> {
+  let AppState { user_state } = app_state;
+
   let health_router = health::routes();
-  let user_router = user::routes();
+  let user_router = user::routes(user_state);
   let merged_router = health_router
     .merge(user_router)
     .route_layer(axum::middleware::from_fn(track_requests));
