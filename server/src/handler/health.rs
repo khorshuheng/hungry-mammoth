@@ -6,6 +6,7 @@ use crate::dto::{
 };
 
 #[utoipa::path(
+  tag = "Health",
   get,
   path = "/health",
   responses(

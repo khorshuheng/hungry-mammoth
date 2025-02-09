@@ -8,8 +8,6 @@ use crate::{middleware::request_tracker::track_requests, state::AppState};
 
 use super::{health, user};
 
-static HUNGRY_MAMMOTH_TAG: &str = "hm";
-
 #[derive(OpenApi)]
 #[openapi(
     info(
@@ -18,9 +16,6 @@ static HUNGRY_MAMMOTH_TAG: &str = "hm";
     servers(
       (url = "http://localhost:8000"),
     ),
-    tags(
-        (name = HUNGRY_MAMMOTH_TAG, description = "Hungry Mammoth API")
-    )
 )]
 struct ApiDoc;
 

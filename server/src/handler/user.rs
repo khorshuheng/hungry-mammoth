@@ -8,7 +8,10 @@ use crate::{
   state::user::UserState,
 };
 
+static USER_TAG: &str = "User";
+
 #[utoipa::path(
+  tag = USER_TAG,
   get,
   path = "",
   responses(
@@ -26,6 +29,7 @@ pub async fn list_users(
 }
 
 #[utoipa::path(
+  tag = USER_TAG,
   post,
   path = "",
   request_body = NewUserParameters,
@@ -45,6 +49,7 @@ pub async fn new_user(
 }
 
 #[utoipa::path(
+  tag = USER_TAG,
   put,
   path = "/{user_id}",
   params(
@@ -64,6 +69,7 @@ pub async fn update_user(
 }
 
 #[utoipa::path(
+  tag = USER_TAG,
   get,
   path = "/{user_id}",
   params(
@@ -85,6 +91,7 @@ pub async fn get_user(
 }
 
 #[utoipa::path(
+  tag = USER_TAG,
   delete,
   path = "/{user_id}",
   params(
