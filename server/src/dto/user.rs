@@ -1,18 +1,19 @@
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use validator::Validate;
 
-#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, PartialEq, Eq, ToSchema)]
 pub struct UserProfile {
   pub id: i32,
   pub email: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct ListUsersResponse {
   pub users: Vec<UserProfile>,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, ToSchema)]
 pub struct NewUserParameters {
   #[validate(email(message = "invalid email format"))]
   pub email: String,
@@ -20,7 +21,7 @@ pub struct NewUserParameters {
   pub password: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct NewUserResponse {
   pub user: UserProfile,
 }

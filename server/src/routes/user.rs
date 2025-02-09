@@ -1,17 +1,12 @@
-use axum::{
-  routing::{delete, get, post, put},
-  Router,
-};
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::routes;
 
 use crate::{handler::user::*, state::user::UserState};
 
-pub(crate) fn routes(user_state: UserState) -> Router {
-  let user_routers = Router::new()
-    .route("/", get(list_users))
-    .route("/", post(new_user))
-    .route("/{user_id}", get(get_user))
-    .route("/{user_id}", put(update_user))
-    .route("/{user_id}", delete(delete_user))
+pub(crate) fn routes(user_state: UserState) -> OpenApiRouter {
+  let user_routers = OpenApiRouter::new()
+    .routes(routes!(list_users, new_user))
+    .routes(routes!(get_user, update_user, delete_user))
     .with_state(user_state);
-  Router::new().nest("/users", user_routers)
+  OpenApiRouter::new().nest("/user", user_routers)
 }

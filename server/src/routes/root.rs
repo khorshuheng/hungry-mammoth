@@ -1,9 +1,28 @@
 use axum::{routing::IntoMakeService, Router};
 use tower_http::{services::ServeDir, trace::TraceLayer};
+use utoipa::OpenApi;
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_redoc::{Redoc, Servable};
 
 use crate::{middleware::request_tracker::track_requests, state::AppState};
 
 use super::{health, user};
+
+static HUNGRY_MAMMOTH_TAG: &str = "hm";
+
+#[derive(OpenApi)]
+#[openapi(
+    info(
+      license(identifier = "MIT"),
+    ),
+    servers(
+      (url = "http://localhost:8000"),
+    ),
+    tags(
+        (name = HUNGRY_MAMMOTH_TAG, description = "Hungry Mammoth API")
+    )
+)]
+struct ApiDoc;
 
 pub fn routes(app_state: AppState) -> IntoMakeService<Router> {
   let AppState { user_state } = app_state;
@@ -14,10 +33,18 @@ pub fn routes(app_state: AppState) -> IntoMakeService<Router> {
     .merge(user_router)
     .route_layer(axum::middleware::from_fn(track_requests));
   let static_dir = ServeDir::new("static");
-  let app_router = Router::new()
+  let (app_router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
     .nest("/api", merged_router)
     .fallback_service(static_dir)
-    .layer(TraceLayer::new_for_http());
-
+    .layer(TraceLayer::new_for_http())
+    .split_for_parts();
+  let api_clone = api.clone();
+  let api_json_router = Router::new().route(
+    "/openapi.json",
+    axum::routing::get(move || async { axum::response::Json(api_clone) }),
+  );
+  let app_router = app_router
+    .merge(Redoc::with_url("/redoc", api))
+    .merge(api_json_router);
   app_router.into_make_service()
 }

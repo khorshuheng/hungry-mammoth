@@ -8,6 +8,13 @@ use crate::{
   state::user::UserState,
 };
 
+#[utoipa::path(
+  get,
+  path = "",
+  responses(
+    (status = 200, description = "List user profile succeeded", body = ListUsersResponse)
+  )
+)]
 pub async fn list_users(
   State(user_state): State<UserState>,
 ) -> Result<ApiSuccess<ListUsersResponse>, ApiError> {
@@ -18,6 +25,14 @@ pub async fn list_users(
   })
 }
 
+#[utoipa::path(
+  post,
+  path = "",
+  request_body = NewUserParameters,
+  responses(
+    (status = 201, description = "New user created", body = NewUserResponse)
+  )
+)]
 pub async fn new_user(
   State(user_state): State<UserState>,
   Json(params): Json<NewUserParameters>,
@@ -29,6 +44,17 @@ pub async fn new_user(
   })
 }
 
+#[utoipa::path(
+  put,
+  path = "/{user_id}",
+  params(
+    ("user_id" = i32, Path, description = "User ID")
+  ),
+  responses(
+    (status = 204, description = "User updated"),
+    (status = 404, description = "User not found"),
+  )
+)]
 pub async fn update_user(
   State(user_state): State<UserState>,
   Json(params): Json<UpdateUserParameters>,
@@ -37,6 +63,17 @@ pub async fn update_user(
   Ok(NoContent)
 }
 
+#[utoipa::path(
+  get,
+  path = "/{user_id}",
+  params(
+      ("user_id" = i32, Path, description = "User ID")
+    ),
+  responses(
+    (status = 204, description = "Successfully get user profile"),
+    (status = 404, description = "User not found"),
+  )
+)]
 pub async fn get_user(
   State(user_state): State<UserState>,
 ) -> Result<ApiSuccess<GetUserResponse>, ApiError> {
@@ -47,6 +84,16 @@ pub async fn get_user(
   })
 }
 
+#[utoipa::path(
+  delete,
+  path = "/{user_id}",
+  params(
+      ("user_id" = i32, Path, description = "User ID")
+    ),
+  responses(
+    (status = 204, description = "User deleted"),
+  )
+)]
 pub async fn delete_user(State(user_state): State<UserState>) -> Result<NoContent, ApiError> {
   user_state.user_service.delete_user(0).await?;
   Ok(NoContent)

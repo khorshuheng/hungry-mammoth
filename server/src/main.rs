@@ -1,5 +1,3 @@
-extern crate dotenv;
-
 use hungry_mammoth::{config::AppConfig, routes, state::AppState};
 use tokio::signal;
 use tracing::{debug, info};
