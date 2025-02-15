@@ -1,6 +1,9 @@
 use hungry_mammoth::{
   dto::user::{NewUserParameters, UpdateUserParameters, UserProfile},
-  repository::user::{UserPostgresRepository, UserRepository},
+  repository::{
+    error::RepositoryError,
+    user::{UserPostgresRepository, UserRepository},
+  },
 };
 
 #[sqlx::test]
@@ -16,6 +19,17 @@ pub async fn test_user_crud(pool: sqlx::PgPool) {
     .await
     .expect("new user creation failed");
   assert_eq!(new_user.email, email);
+  let duplicate_email_error = user_repository
+    .new_user(NewUserParameters {
+      email: email.clone(),
+      password: password.clone(),
+    })
+    .await
+    .expect_err("should throw error when creating user with duplicated email");
+  assert!(matches!(
+    duplicate_email_error,
+    RepositoryError::UniqueConstraintViolation(_)
+  ));
   let user_id = new_user.id;
   let get_user = user_repository
     .get_user(user_id)

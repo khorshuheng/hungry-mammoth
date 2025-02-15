@@ -34,7 +34,8 @@ pub async fn list_users(
   path = "",
   request_body = NewUserParameters,
   responses(
-    (status = 201, description = "New user created", body = NewUserResponse)
+    (status = 201, description = "New user created", body = NewUserResponse),
+    (status = 409, description = "Duplicated user")
   )
 )]
 pub async fn new_user(
@@ -43,7 +44,7 @@ pub async fn new_user(
 ) -> Result<ApiSuccess<NewUserResponse>, ApiError> {
   let user = user_state.user_service.new_user(params).await?;
   Ok(ApiSuccess {
-    status: StatusCode::ACCEPTED,
+    status: StatusCode::CREATED,
     data: NewUserResponse { user },
   })
 }

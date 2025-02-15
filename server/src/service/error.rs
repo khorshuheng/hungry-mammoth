@@ -12,6 +12,8 @@ pub enum ServiceError {
   UnprocessableEntity(String),
   #[error("entity not found")]
   EntityNotFound,
+  #[error("conflict: {0}")]
+  Conflict(String),
 }
 
 impl From<ServiceError> for ApiError {
@@ -27,6 +29,10 @@ impl From<ServiceError> for ApiError {
       },
       ServiceError::EntityNotFound => ApiError {
         status: StatusCode::NOT_FOUND,
+        message: error.to_string(),
+      },
+      ServiceError::Conflict(_) => ApiError {
+        status: StatusCode::CONFLICT,
         message: error.to_string(),
       },
     }

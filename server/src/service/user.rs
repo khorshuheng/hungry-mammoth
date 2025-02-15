@@ -38,8 +38,9 @@ impl UserService {
   pub async fn new_user(&self, params: NewUserParameters) -> Result<UserProfile, ServiceError> {
     match self.repository.new_user(params).await {
       Ok(user) => Ok(user),
+      Err(RepositoryError::UniqueConstraintViolation(err)) => Err(ServiceError::Conflict(err)),
       Err(err) => Err(ServiceError::InternalError(format!(
-        "unable to create user: {}",
+        "error creating new user: {}",
         err
       ))),
     }
