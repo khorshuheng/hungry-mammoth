@@ -1,9 +1,9 @@
-import { DefaultApi } from "../api";
+import { UserApi } from "../api";
 
 describe("API integration test", () => {
-  const apiClient = new DefaultApi();
+  const userApiClient = new UserApi();
   test("should create users", async () => {
-    const response = await apiClient.newUser({
+    const response = await userApiClient.newUser({
       email: "user1@domain.com",
       password: "password1",
     });
@@ -11,7 +11,7 @@ describe("API integration test", () => {
   });
   test("should throw error when email is duplicated", async () => {
     await expect(
-      apiClient.newUser({
+      userApiClient.newUser({
         email: "user1@domain.com",
         password: "password2",
       }),
@@ -22,7 +22,7 @@ describe("API integration test", () => {
     });
   });
   test("should list users", async () => {
-    const response = await apiClient.listUsers();
+    const response = await userApiClient.listUsers();
     expect(response.status).toBe(200);
     expect(response.data.users).toEqual([
       {

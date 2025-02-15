@@ -6,7 +6,7 @@ use utoipa_redoc::{Redoc, Servable};
 
 use crate::{middleware::request_tracker::track_requests, state::AppState};
 
-use super::{health, user};
+use super::{auth, health, user};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -24,8 +24,10 @@ pub fn routes(app_state: AppState) -> IntoMakeService<Router> {
 
   let health_router = health::routes();
   let user_router = user::routes(user_state);
+  let auth_router = auth::routes();
   let merged_router = health_router
     .merge(user_router)
+    .merge(auth_router)
     .route_layer(axum::middleware::from_fn(track_requests));
   let static_dir = ServeDir::new("static");
   let (app_router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())

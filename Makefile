@@ -8,6 +8,10 @@ static:
 lint:
 	cd server; cargo clippy -- -D warnings
 
+openapi-client: start-server
+	cd client; openapi-generator-cli generate -g typescript-axios -o src/api -i http://${SERVER_HOST}:${SERVER_PORT}/openapi.json
+	cd server; if [ -f server.pid ]; then kill `cat server.pid` && rm server.pid; fi
+
 dep:
 	cd server; docker compose down
 	cd server; docker compose up --wait
