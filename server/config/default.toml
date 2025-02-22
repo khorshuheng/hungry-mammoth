@@ -15,6 +15,12 @@ database = "postgres"
 max_connections = 50
 acquire_timeout = 5
 
+[auth]
+secret = ""
+refresh_secret = ""
+# Token expiry in seconds
+token_expiry = 3600
+
 [metrics]
 # Http requests latency buckets in seconds
 http_requests_latency_buckets = [

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Deserialize, Validate, ToSchema)]
@@ -12,4 +13,12 @@ pub struct GetTokenParameters {
 #[derive(Serialize, ToSchema)]
 pub struct AuthTokenResponse {
   pub token: String,
+}
+
+#[derive(Serialize)]
+pub struct TokenClaims {
+  pub sub: Uuid,
+  pub email: String,
+  pub iat: i64,
+  pub exp: i64,
 }

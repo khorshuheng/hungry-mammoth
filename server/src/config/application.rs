@@ -35,11 +35,19 @@ pub struct DatabaseConfig {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct AuthConfig {
+  pub secret: String,
+  pub refresh_secret: String,
+  pub token_expiry: u64,
+}
+
+#[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct AppConfig {
   pub server: ServerConfig,
   pub metrics: MetricsConfig,
   pub database: DatabaseConfig,
+  pub auth: AuthConfig,
 }
 
 impl AppConfig {

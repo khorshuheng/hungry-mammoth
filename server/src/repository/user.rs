@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use sqlx::PgPool;
+use uuid::Uuid;
 
-use crate::dto::user::{NewUserParameters, UpdateUserParameters, UserProfile};
+use crate::dto::user::*;
 
 use super::error::RepositoryError;
 
@@ -11,14 +12,16 @@ use mockall::automock;
 #[async_trait]
 pub trait UserRepository: Send + Sync {
   async fn list_users(&self) -> Result<Vec<UserProfile>, RepositoryError>;
-  async fn get_user(&self, user_id: i32) -> Result<Option<UserProfile>, RepositoryError>;
-  async fn new_user(&self, params: NewUserParameters) -> Result<UserProfile, RepositoryError>;
-  async fn update_user(
+  async fn get_user_by_uuid(&self, user_uuid: Uuid)
+    -> Result<Option<UserProfile>, RepositoryError>;
+  async fn get_user_by_email(&self, email: &str) -> Result<Option<UserProfile>, RepositoryError>;
+  async fn new_user(&self, params: NewUserProfile) -> Result<UserProfile, RepositoryError>;
+  async fn update_user_by_uuid(
     &self,
-    user_id: i32,
-    params: UpdateUserParameters,
+    user_uuid: Uuid,
+    params: UserProfileChange,
   ) -> Result<(), RepositoryError>;
-  async fn delete_user(&self, user_id: i32) -> Result<(), RepositoryError>;
+  async fn delete_user_by_uuid(&self, user_uuid: Uuid) -> Result<(), RepositoryError>;
 }
 
 #[derive(Clone)]
@@ -38,7 +41,7 @@ impl UserRepository for UserPostgresRepository {
     sqlx::query_as!(
       UserProfile,
       r#"
-      SELECT id, email
+      SELECT uuid, email
       FROM user_profile
       "#
     )
@@ -47,50 +50,68 @@ impl UserRepository for UserPostgresRepository {
     .map_err(|err| err.into())
   }
 
-  async fn get_user(&self, user_id: i32) -> Result<Option<UserProfile>, RepositoryError> {
+  async fn get_user_by_uuid(
+    &self,
+    user_uuid: Uuid,
+  ) -> Result<Option<UserProfile>, RepositoryError> {
     sqlx::query_as!(
       UserProfile,
       r#"
-      SELECT id, email
+      SELECT uuid, email
       FROM user_profile
-      WHERE id = $1
+      WHERE uuid = $1
       "#,
-      user_id
+      user_uuid
     )
     .fetch_optional(&self.pool)
     .await
     .map_err(|err| err.into())
   }
 
-  async fn new_user(&self, params: NewUserParameters) -> Result<UserProfile, RepositoryError> {
+  async fn get_user_by_email(&self, email: &str) -> Result<Option<UserProfile>, RepositoryError> {
     sqlx::query_as!(
       UserProfile,
       r#"
-      INSERT INTO user_profile (email, password)
+        SELECT uuid, email
+        FROM user_profile
+        WHERE email = $1
+        "#,
+      email
+    )
+    .fetch_optional(&self.pool)
+    .await
+    .map_err(|err| err.into())
+  }
+
+  async fn new_user(&self, params: NewUserProfile) -> Result<UserProfile, RepositoryError> {
+    sqlx::query_as!(
+      UserProfile,
+      r#"
+      INSERT INTO user_profile (email, password_hash)
       VALUES ($1, $2)
-      RETURNING id, email
+      RETURNING uuid, email
       "#,
       params.email,
-      params.password,
+      params.password_hash,
     )
     .fetch_one(&self.pool)
     .await
     .map_err(|err| err.into())
   }
 
-  async fn update_user(
+  async fn update_user_by_uuid(
     &self,
-    user_id: i32,
-    params: UpdateUserParameters,
+    user_uuid: Uuid,
+    params: UserProfileChange,
   ) -> Result<(), RepositoryError> {
     let updated_row_count = sqlx::query!(
       r#"
       UPDATE user_profile
       SET email = $1
-      WHERE id = $2
+      WHERE uuid = $2
       "#,
       params.email,
-      user_id
+      user_uuid
     )
     .execute(&self.pool)
     .await?;
@@ -101,13 +122,13 @@ impl UserRepository for UserPostgresRepository {
     }
   }
 
-  async fn delete_user(&self, user_id: i32) -> Result<(), RepositoryError> {
+  async fn delete_user_by_uuid(&self, user_uuid: Uuid) -> Result<(), RepositoryError> {
     sqlx::query!(
       r#"
       DELETE FROM user_profile
-      WHERE id = $1
+      WHERE uuid = $1
       "#,
-      user_id
+      user_uuid
     )
     .execute(&self.pool)
     .await

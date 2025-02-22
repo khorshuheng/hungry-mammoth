@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n      UPDATE user_profile\n      SET email = $1\n      WHERE uuid = $2\n      ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e107440c0a9bee73d82bcf16334c2d1efc709e3f1fb041eef0934d50ad795989"
+}

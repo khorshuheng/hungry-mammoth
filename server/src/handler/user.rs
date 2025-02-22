@@ -1,4 +1,10 @@
-use axum::{extract::State, http::StatusCode, response::NoContent, Json};
+use axum::{
+  extract::{Path, State},
+  http::StatusCode,
+  response::NoContent,
+  Json,
+};
+use uuid::Uuid;
 
 use crate::{
   dto::{
@@ -52,9 +58,9 @@ pub async fn new_user(
 #[utoipa::path(
   tag = USER_TAG,
   put,
-  path = "/{user_id}",
+  path = "/{user_uuid}",
   params(
-    ("user_id" = i32, Path, description = "User ID")
+    ("user_uuid" = Uuid, Path, description = "User UUID")
   ),
   responses(
     (status = 204, description = "User updated"),
@@ -63,18 +69,22 @@ pub async fn new_user(
 )]
 pub async fn update_user(
   State(user_state): State<UserState>,
+  Path(user_uuid): Path<Uuid>,
   Json(params): Json<UpdateUserParameters>,
 ) -> Result<NoContent, ApiError> {
-  user_state.user_service.update_user(0, params).await?;
+  user_state
+    .user_service
+    .update_user(user_uuid, params)
+    .await?;
   Ok(NoContent)
 }
 
 #[utoipa::path(
   tag = USER_TAG,
   get,
-  path = "/{user_id}",
+  path = "/{user_uuid}",
   params(
-      ("user_id" = i32, Path, description = "User ID")
+      ("user_uuid" = Uuid, Path, description = "User UUID")
     ),
   responses(
     (status = 204, description = "Successfully get user profile"),
@@ -83,8 +93,9 @@ pub async fn update_user(
 )]
 pub async fn get_user(
   State(user_state): State<UserState>,
+  Path(user_uuid): Path<Uuid>,
 ) -> Result<ApiSuccess<GetUserResponse>, ApiError> {
-  let user = user_state.user_service.get_user(0).await?;
+  let user = user_state.user_service.get_user(user_uuid).await?;
   Ok(ApiSuccess {
     status: StatusCode::OK,
     data: GetUserResponse { user },
@@ -94,15 +105,18 @@ pub async fn get_user(
 #[utoipa::path(
   tag = USER_TAG,
   delete,
-  path = "/{user_id}",
+  path = "/{user_uuid}",
   params(
-      ("user_id" = i32, Path, description = "User ID")
+      ("user_uuid" = Uuid, Path, description = "User UUID")
     ),
   responses(
     (status = 204, description = "User deleted"),
   )
 )]
-pub async fn delete_user(State(user_state): State<UserState>) -> Result<NoContent, ApiError> {
-  user_state.user_service.delete_user(0).await?;
+pub async fn delete_user(
+  State(user_state): State<UserState>,
+  Path(user_uuid): Path<Uuid>,
+) -> Result<NoContent, ApiError> {
+  user_state.user_service.delete_user(user_uuid).await?;
   Ok(NoContent)
 }

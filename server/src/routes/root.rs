@@ -20,11 +20,14 @@ use super::{auth, health, user};
 struct ApiDoc;
 
 pub fn routes(app_state: AppState) -> IntoMakeService<Router> {
-  let AppState { user_state } = app_state;
+  let AppState {
+    user_state,
+    auth_state,
+  } = app_state;
 
   let health_router = health::routes();
   let user_router = user::routes(user_state);
-  let auth_router = auth::routes();
+  let auth_router = auth::routes(auth_state);
   let merged_router = health_router
     .merge(user_router)
     .merge(auth_router)
